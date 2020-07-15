@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+    <!--bean标签：要创建的bean对象
+        id:bean的唯一标识
+        class:要创建的bean的完全限定名(包名+类名)
+
+        property标签：给属性赋值
+            name:属性名
+            value:属性值
+     -->
+    <bean id="person" class="spring.ioc.xml.com.chencan.bean.Person">
+        <!--根据属性值设置的时候，name的名称取决于set方法后面的参数首字符小写的名称 setId  name="id"-->
+        <property name="id" value="1"></property>
+        <property name="name" value="yuqin"></property>
+        <property name="age" value="18"></property>
+        <property name="gender" value="女"></property>
+
+        <!--给复杂类型进行赋值操作-->
+
+        <!--给数组赋值-->
+        <property name="hobbies">
+            <array>
+                <value>book</value>
+                <value>eat</value>
+                <value>movie</value>
+            </array>
+        </property>
+
+        <!--给引用类型赋值,使用ref引入外部bean-->
+        <property name="address" ref="address"></property>
+
+        <!--给list赋值-->
+        <property name="lists">
+            <list>
+                <!--使用内部bean,无法从IOC容器中直接获取对象的值-->
+                <bean id="address2" class="spring.ioc.xml.com.chencan.bean.Address">
+                    <property name="province" value="北京"></property>
+                </bean>
+
+                <!--ref标签：引入外部bean,可以从IOC容器中直接获取对象的值-->
+                <ref bean="address"></ref>
+            </list>
+        </property>
+
+        <!--给set赋值-->
+        <property name="sets">
+            <set>
+                <value>lanna</value>
+                <value>lanna</value>
+                <value>zhujun</value>
+            </set>
+        </property>
+
+        <!--给map赋值-->
+        <property name="maps">
+            <map>
+                <entry key="1" value="a"></entry>
+
+                <entry key="address" value-ref="address"></entry>
+
+                <entry key="address2">
+                    <bean class="spring.ioc.xml.com.chencan.bean.Address">
+                        <property name="province" value="上海"></property>
+                    </bean>
+                </entry>
+
+                <entry key="list">
+                    <list>
+                        <value>1</value>
+                        <value>2</value>
+                    </list>
+                </entry>
+            </map>
+        </property>
+
+        <!--给properties赋值-->
+        <property name="properties">
+            <props>
+                <prop key="1">a</prop>
+                <prop key="2">b</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="address" class="spring.ioc.xml.com.chencan.bean.Address">
+        <property name="province" value="湖南省"></property>
+        <property name="city" value="长沙市"></property>
+        <property name="town" value="开福区"></property>
+    </bean>
+
+    <!--bean之间的继承关系-->
+    <bean id="parent" class="spring.ioc.xml.com.chencan.bean.Person">
+        <property name="id" value="1"></property>
+        <property name="name" value="yuqin"></property>
+        <property name="age" value="18"></property>
+        <property name="gender" value="女"></property>
+    </bean>
+    <bean id="child" class="spring.ioc.xml.com.chencan.bean.Person" parent="parent">
+        <property name="name" value="fengpan"></property>
+    </bean>
+
+    <!--创建bean的依赖关系（先后顺序）
+        按照xml配置文件定义的顺序创建，谁在前，谁就先被创建
+        一定要规定创建的顺序的话，可以使用depends-on属性  depends-on="personR" personR对象先被创建
+    -->
+    <bean id="addressR" class="spring.ioc.xml.com.chencan.bean.Address" depends-on="personR"></bean>
+    <bean id="personR" class="spring.ioc.xml.com.chencan.bean.Person"></bean>
+
+    <!--设置bean对象的作用域
+    scope属性可以指定当前bean的作用域
+    singleton：单例模式，从IOC容器中获取的都是同一个对象，默认的作用域
+    prototype：多例模式，从IOC容器中获取的对象每次都是新创建
+
+    如果是singleton作用域的话，每次在创建IOC容器完成之前此对象已经创建完成
+    如果是prototypez作用域的话，每次是在需要用到此对象的时候才会创建
+
+    在spring4.x的版本中还包含另外两种作用域：
+    request：每次发送请求都会有一个新的对象
+    session：每一次会话都会有一个新的对象
+            几乎不用，从来没用过，因此在5版本的时候被淘汰了
+    -->
+    <bean id="personScope" class="spring.ioc.xml.com.chencan.bean.Person" scope="prototype"></bean>
+
+    <!--利用工厂方法创建bean-->
+
+    <!--静态工厂：类名.静态方法（）-->
+    <bean id="personF" class="spring.ioc.xml.com.chencan.factory.PersonStaticFactory" factory-method="getInstance">
+        <constructor-arg value="yuqin"></constructor-arg>
+    </bean>
+
+    <!--实例工厂：
+    先创建工厂实例，
+    然后调用工厂实例的方法
+    factory-bean：具体工厂类的实例
+    factory-method：集体工厂实例的方法
+    -->
+    <bean id="instanceFatory" class="spring.ioc.xml.com.chencan.factory.PersonInstanceFactory"></bean>
+    <bean id="personF2" class="spring.ioc.xml.com.chencan.factory.PersonStaticFactory" factory-bean="instanceFatory" factory-method="getInstance">
+        <constructor-arg value="lanna"></constructor-arg>
+    </bean>
+
+    <!--spring管理第三方bean-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="username" value="root"></property>
+        <property name="password" value="123456"></property>
+        <property name="url" value="jdbc:mysql://localhost:3306/demo"></property>
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+    </bean>
+
+    <!--当需要引入外部的配置文件的时候，需要导入一些context的命名空间-->
+    <context:property-placeholder location="classpath:db.properties"></context:property-placeholder>
+
+    <!--在配置文件编写属性的时候需要注意，
+   spring容器在进行启动的时候，会读取当前系统的某些环境变量的配置，
+   当前系统的用户名是用username来表示的，所以最好的方式是添加前缀来做区分
+   -->
+    <bean id="dataSource2" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="username" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+        <property name="url" value="${url}"></property>
+        <property name="driverClassName" value="${driverClassName}"></property>
+    </bean>
+
+    <!--spring中的自动装配-->
+    <bean id="addressWire" class="spring.ioc.xml.com.chencan.bean.Address">
+        <property name="province" value="湖南"></property>
+        <property name="city" value="长沙市"></property>
+        <property name="town" value="开福区"></property>
+    </bean>
+    <!--在spring中，可以使用自动装配的功能，spring会把某些bean注入到另外bean中
+   可以使用autowire属性来实现自动装配，有以下几种情况
+   default/no: 不装配
+   byName:按照id来进行装配,根据set方法后面的名称首字母小写决定的，不是参数列表的名称
+   byType:按照bean的类型来进行装配，但是如果有多个类型，就会报错，不知道选择哪一个具体的类型
+   constructor:按照构造器进行装配，首先按照类型进行判断，如果有多个类型相同的bean,再按照id去进行判断
+
+   使用byName方式简单些
+   -->
+    <bean id="personWire" class="spring.ioc.xml.com.chencan.bean.Person" autowire="byName">
+    </bean>
+
+    <!--SpEL表达式语言的使用-->
+    <bean id="personSPEL" class="spring.ioc.xml.com.chencan.bean.Person">
+        <!--可以引入bean对象的属性-->
+        <property name="name" value="#{address.province}"></property>
+        <!--可以支持运算符的所有操作-->
+        <property name="age" value="#{12*2}"></property>
+        <!--可以引入外部bean-->
+        <property name="address" value="#{address}"></property>
+        <!--可以调用静态方法-->
+        <property name="gender" value="#{T(java.util.UUID).randomUUID().toString().substring(0,5)}"></property>
+        <!--调用非静态方法-->
+        <property name="hobbies" value="#{address.getCity()}"></property>
+    </bean>
+
+</beans>
